@@ -1,0 +1,26 @@
+{
+  "name": "bitscheme",
+  "version": "0.0.1",
+  "description": "Bitstream Schematizer: declaratively parse, manipulate and generate binary data ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheSwanFactory/bitscheme.git"
+  },
+  "keywords": [
+    "bitstream",
+    "schema",
+    "binary",
+    "dreadful",
+    "fpga"
+  ],
+  "author": "Ernest N. Prabhakar, Ph.D.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TheSwanFactory/bitscheme/issues"
+  },
+  "homepage": "https://github.com/TheSwanFactory/bitscheme#readme"
+}
