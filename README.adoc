@@ -1,0 +1,22 @@
+= BitScheme
+Bitstream Schematizer: declaratively parse, manipulate and generate binary data
+https://github.com/TheSwanFactory/bitscheme
+
+BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).
+
+== Documentation
+
+We are currently using https://asciidoctor.org/docs/user-manual/#installing-the-asciidoctor-ruby-gem[asciidoc] to develop the Executable Design Documentation.  If you have https://rubygems.org/pages/download[RubyGems] on your system, you can type:
+```
+$ gem install asciidoctor # possibly with 'sudo'
+$ asciidoctor BitScheme.adoc
+```
+
+== Development
+
+BitScheme is a 'congram' of https://github.com/TheSwanFactory/hclang[Homoiconic C], and requires https://www.npmjs.com/get-npm[npm] first be installed.  This also allows you to view the latest HTML documentation by typing:
+```
+$ npm run doc
+```
+
+For more information, please join us on the https://groups.google.com/forum/?nomobile=true#!forum/uncomplex[uncomplex] mailing list.

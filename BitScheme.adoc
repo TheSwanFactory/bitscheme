@@ -81,7 +81,7 @@ Types are just grouped expressions that are interpreted as constraints.  Some co
 ```
 ==== Type Errors
 
-If you attempt to assign a value that doesn't satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by `$`):
+If you attempt to assign a value that doesn't satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by `$`:
 ```
 ; .BelowThree <1,2> 12;
 # $TypeError<1,2>(.BelowThree, 12)
