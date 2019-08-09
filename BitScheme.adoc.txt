@@ -1,0 +1,70 @@
+= BitScheme
+
+BitScheme Is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as scripting language for manipulating those bitstreams, what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage). 
+
+BitScheme files use "bitscheme" as the file extension must begin with a hashbang containing that string,  e.g.:
+```
+#!/use/bin/env bitscheme 
+```
+
+While you can write your own parsers, BitScheme files can also be executed directly from the command line. With no arguments, they will write a  bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream. 
+
+BitScheme can also be run as a REPL, with ';' as the input prompt and '#' for the output. That is the format we will use for examples in this document. 
+
+== Syntax
+
+BitScheme syntax is mostly just Identifiers and Grouping. 
+
+=== Identifiers
+==== Literals
+
+The simplest Identifiers are Literals, e.g.:
+```
+; 12345 # Decimal
+; 0b101 # Binary
+; `Hello' # String (quoted, utf-8)
+; \5\Hello # NetString (sized in bytes)
+```
+You can also use triple-backquotes for docstrings in asciidoc format. If you pass a '.adoc' file to bitscheme, it will pretend the backquotes, execute the code blocks, and warn if the evaluates input does not match the expected output. 
+
+Comment strings (using '#') are also considered a type of Literal:
+```
+; 1234 # trailing comment 
+; #  inline comment # 4321
+
+```
+
+==== Expressions
+
+Identifiers can be combined into Expressions. The default behavior is concatenation:
+```
+; 0b1101 0b0110
+# 0b11010110
+; `Hello' ` World' 
+# `Hello World' 
+```
+==== Symbols
+
+BitScheme also supports Symbolic Identifiers, which can be set
+as a Name (with a dot prefix) or evaluated as a Value (without):
+```
+; .the-answer 42 # Name (setter)
+; the-answer # Value (getter)
+# 42
+```
+
+Symbols with only non-alphanumeric characters (e.g., '+') are called Operators. 
+
+=== Grouping
+
+Grouping is done using Terminals (comma, semicolon, and newline) and Delimiters:
+```
+; [1, 2, 3] # Array
+; (0b1 0b0) # Expression
+; .Proc {0b1 0b0} # Lazy
+; .nil ()
+; .all <>
+; .Bit <nil, all> # Type
+```
+
+== Examples
