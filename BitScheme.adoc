@@ -2,14 +2,14 @@
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).
 
-BitScheme files use "bitscheme" as the file extension must begin with a hashbang containing that string,  e.g.:
+BitScheme files use `bitscheme` as the file extension, and must begin with a hashbang containing that string,  e.g.:
 ```
 #!/use/bin/env bitscheme
 ```
 
-While you can write your own parsers, BitScheme files can also be executed directly from the command line. With no arguments, they will write a  bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
+While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
 
-BitScheme can also be run as a REPL, with ';' as the input prompt and '#' for the output. That is the format we will use for examples in this document.
+BitScheme can also be run as a REPL, with `;` as the input prompt and `#` for the output. That is the format we will use for examples in this document.
 
 == Syntax
 
@@ -48,7 +48,7 @@ Identifiers can be combined into Expressions. The default behavior is concatenat
 BitScheme also supports Symbolic Identifiers, which can be set
 as a Name (with a dot prefix) or evaluated as a Value (without):
 ```
-; .the-answer 42 # Name (setter)
+; .the-answer 42; # Name (setter)
 ; the-answer # Value (getter)
 # 42
 ```
@@ -60,11 +60,32 @@ Symbols with only non-alphanumeric characters (e.g., '+') are called Operators.
 Grouping is done using Terminals (comma, semicolon, and newline) and Delimiters:
 ```
 ; [1, 2, 3] # Array
-; (0b1 0b0) # Expression
-; .Proc {0b1 0b0} # Lazy
-; .nil ()
-; .all <>
-; .Bit <nil, all> # Type
+# [1, 2, 3]
+; (0b1 0b0), # Expression
+# 0b10
+; .Proc {0b1 0b0}; # Lazy
+; .nil ();
+; .all <>;
+; .Bit <nil, all>; # Type
 ```
+
+==== Types
+
+Types are just grouped expressions that are interpreted as constraints.  Some common type expressions are:
+
+```
+; .Enum <1,2,3>; # Enumerated list of valid values
+; .BitField <3 Bit>; # Fixed-width sequences
+; .BitStream <[Bit]>; # Arbitrary-length Arrays of a specific type
+
+```
+==== Type Errors
+
+If you attempt to assign a value that doesn't satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by `$`):
+```
+; .BelowThree <1,2> 12;
+# $TypeError<1,2>(.BelowThree, 12)
+```
+
 
 == Examples

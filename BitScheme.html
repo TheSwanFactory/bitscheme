@@ -444,10 +444,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>BitScheme Is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as scripting language for manipulating those bitstreams, what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).</p>
+<p>BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams&#8201;&#8212;&#8201;what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).</p>
 </div>
 <div class="paragraph">
-<p>BitScheme files use "bitscheme" as the file extension must begin with a hashbang containing that string,  e.g.:</p>
+<p>BitScheme files use <code>bitscheme</code> as the file extension, and must begin with a hashbang containing that string,  e.g.:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -455,10 +455,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>While you can write your own parsers, BitScheme files can also be executed directly from the command line. With no arguments, they will write a  bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.</p>
+<p>While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, <code>bitscheme</code> will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.</p>
 </div>
 <div class="paragraph">
-<p>BitScheme can also be run as a REPL, with ';' as the input prompt and '#' for the output. That is the format we will use for examples in this document.</p>
+<p>BitScheme can also be run as a REPL, with <code>;</code> as the input prompt and <code>#</code> for the output. That is the format we will use for examples in this document.</p>
 </div>
 </div>
 </div>
@@ -518,7 +518,7 @@ as a Name (with a dot prefix) or evaluated as a Value (without):</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .the-answer 42 # Name (setter)
+<pre class="highlight"><code>; .the-answer 42; # Name (setter)
 ; the-answer # Value (getter)
 # 42</code></pre>
 </div>
@@ -536,11 +536,38 @@ as a Name (with a dot prefix) or evaluated as a Value (without):</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code>; [1, 2, 3] # Array
-; (0b1 0b0) # Expression
-; .Proc {0b1 0b0} # Lazy
-; .nil ()
-; .all &lt;&gt;
-; .Bit &lt;nil, all&gt; # Type</code></pre>
+# [1, 2, 3]
+; (0b1 0b0), # Expression
+# 0b10
+; .Proc {0b1 0b0}; # Lazy
+; .nil ();
+; .all &lt;&gt;;
+; .Bit &lt;nil, all&gt;; # Type</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_types">Types</h4>
+<div class="paragraph">
+<p>Types are just grouped expressions that are interpreted as constraints.  Some common type expressions are:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .Enum &lt;1,2,3&gt;; # Enumerated list of valid values
+; .BitField &lt;3 Bit&gt;; # Fixed-width sequences
+; .BitStream &lt;[Bit]&gt;; # Arbitrary-length Arrays of a specific type</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_type_errors">Type Errors</h4>
+<div class="paragraph">
+<p>If you attempt to assign a value that doesn&#8217;t satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by <code>$</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .BelowThree &lt;1,2&gt; 12;
+# $TypeError&lt;1,2&gt;(.BelowThree, 12)</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -555,7 +582,7 @@ as a Name (with a dot prefix) or evaluated as a Value (without):</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-08-08 20:49:03 -0700
+Last updated 2019-08-09 06:14:56 -0700
 </div>
 </div>
 </body>
