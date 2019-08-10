@@ -72,14 +72,12 @@ Symbols with only non-alphanumeric characters (e.g., '+') are called Operators r
 
 Grouping is done using Terminals (comma `,`, semicolon `;`, and newline `\n`) and the four pairs of Delimiters:
 ```
-; [1, 2, 3] # [] Sequence
+; [1, 2, 3] # [] Boxed Sequence
 # [1, 2, 3]
-; (0b1 0b0), # () Expression
+; (0b1 0b0), # () Unboxed Expression
 # 0b10
 ; .Proc {0b1 0b0}; # {} Closure
-; .false ();
-; .true <>;
-; .Bit <true, false>; # <> Schema (i.e. type; see below)
+; .Bit <0b0, 0b1>; # <> Schema (i.e. type; see below)
 ```
 
 ==== Properties
@@ -123,15 +121,50 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $Enum<1,2,3> 4
 ```
 
-Schemas can also act directly to extract or rebind values from compound sequences:
+Schemas can also act directly to extract or bind values from compound sequences:
 
 ```
 ; <.x, .z> [.x 1; .y 2; .z 3;] # Selector
 # [1, 3]
-; <.b <Bit>> [<>, (), <>]
-# [.b <>;]
+; <.head <3 Bit>; .tail <[Bit]>> 0b10101100
+# [.head 0b101; .tail 0b01100]
 
 ```
 
 
 == Example: RISC V
+
+To see how this works in practice, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
+
+=== Core Schemas
+
+```
+; .FUNCT3 (.funct3 <3 Bit>;);
+; .FUNCT7 (.funct7 <7 Bit>;);
+; .OPCODE (.opcode <7 Bit>;);
+; .RD (.rd <6 Bit>);
+; .RS1 (.rs1 <5 Bit>);
+; .RS2 (.rs2 <5 Bit>);
+; .SOURCE (RS2, RS1, FUNCT3);
+
+; .Register <[FUNCT7, SOURCE, RD, OPCODE]>;
+; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, OPCODE]>;
+; .UpperImmediate <[.imm31-12 <20 Bit>, RD, OPCODE]>;
+; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, OPCODE]>;
+; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, OPCODE]>;
+; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, OPCODE]>;
+
+```
+=== Helper Methods
+
+We can also define helper properties to reconstitute immediates:
+```
+; @Immediate.immediate { imm11-0 };
+; @UpperImmediate.immediate { imm31-12 (12 0b0)};
+; @Store.immediate { imm11-5 imm4-0 };
+; @Branch.immediate { b12 b11 imm10-5 imm4-1 0b0};
+; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };
+
+```
+
+=== Usage
