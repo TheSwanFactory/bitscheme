@@ -1,4 +1,4 @@
-= BitScheme
+= BitScheme Tutorial
 
 BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).
 
@@ -9,7 +9,7 @@ BitScheme files use `bitscheme` as the file extension, and must begin with a has
 
 While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
 
-BitScheme can also be run as a REPL, with `;` as the input prompt and `#` for the output. That is the format we will use for examples in this document.
+BitScheme can also be run as a REPL, with `; ` as the input prompt and `# ` for the output. That is the format we will use for examples in this document.
 
 == Syntax
 
@@ -21,11 +21,15 @@ BitScheme syntax is mostly just Identifiers and Grouping.
 The simplest Identifiers are Literals, e.g.:
 ```
 ; 12345 # Decimal
+# 12345
 ; 0b101 # Binary
+# 0b101
 ; `Hello' # String (quoted, utf-8)
+# `Hello'
 ; \5\Hello # NetString (sized in bytes)
+# \5\Hello
 ```
-You can also use triple-backquotes for docstrings in asciidoc format. If you pass a '.adoc' file to bitscheme, it will pretend the backquotes, execute the code blocks, and warn if the evaluates input does not match the expected output.
+You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a '.adoc' file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using '#') are also considered a type of Literal:
 ```
@@ -52,21 +56,31 @@ as a Name (with a dot prefix) or evaluated as a Value (without):
 ; the-answer # Value (getter)
 # 42
 ```
+Attempts to access an undefined variable will result in a error, with a `$` prefix:
+```
+; ther-answer
+# $ther-answer # error.undefined
+```
 
-Symbols with only non-alphanumeric characters (e.g., '+') are called Operators.
+Symbols with only non-alphanumeric characters (e.g., '+') are called Operators. There are four universal binary Operators in the standard library, which can be used with any Value:
+- `?` if-then
+- `:` if-else
+- `&` map
+- `|` reduce
+
 
 === Grouping
 
-Grouping is done using Terminals (comma, semicolon, and newline) and Delimiters:
+Grouping is done using Terminals (comma `,`, semicolon `;`, and newline `\n`) and the four pairs of Delimiters:
 ```
 ; [1, 2, 3] # Array
 # [1, 2, 3]
 ; (0b1 0b0), # Expression
 # 0b10
-; .Proc {0b1 0b0}; # Lazy
+; .Proc {0b1 0b0}; # Deferred Expression
 ; .nil ();
 ; .all <>;
-; .Bit <nil, all>; # Type
+; .Bit <nil, all>; # Schema
 ```
 
 ==== Types
@@ -81,11 +95,6 @@ Types are just grouped expressions that are interpreted as constraints.  Some co
 ```
 ==== Type Errors
 
-If you attempt to assign a value that doesn't satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by `$`:
-```
-; .BelowThree <1,2> 12;
-# $TypeError<1,2>(.BelowThree, 12)
-```
 
 
 == Examples
