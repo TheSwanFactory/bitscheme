@@ -61,7 +61,7 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 
 ```
 
-Symbols with only non-alphanumeric characters (e.g., '+') are called Operators. There are four universal binary Operators in the standard library, which can be used with any Value:
+Symbols with only non-alphanumeric characters (e.g., '+') are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
 - `?` if-then
 - `:` if-else
 - `&` map
@@ -77,10 +77,30 @@ Grouping is done using Terminals (comma `,`, semicolon `;`, and newline `\n`) an
 ; (0b1 0b0), # () Expression
 # 0b10
 ; .Proc {0b1 0b0}; # {} Closure
-; .nil ();
-; .all <>;
-; .Bit <nil, all>; # <> Schema
+; .false ();
+; .true <>;
+; .Bit <true, false>; # <> Schema (i.e. type; see below)
 ```
+
+==== Properties
+
+Names can be used as properties to extract values from Groupings:
+```
+; [.a 1; .b 2;].a
+# 1
+```
+
+==== Operator Syntax
+
+ Operators are actually defined as properties. However, since Operators must always operate _on_ something, the preceding dot is optional:
+ ```
+ ; true .? `Yes' .: `No'
+ # `Yes'
+ ; false ? `Yes' : `No'
+ # `No'
+
+ ```
+
 
 == Schemas
 
