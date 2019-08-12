@@ -272,3 +272,15 @@ Similarly, we can apply a parse dictionary to the Schema to create a literal:
 ; a11r10r7-literal.[]
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
+
+== Notes
+=== Schema Construction Syntax
+
+Need a different Syntax for Schema construction. As it is, we'd need to detect that the argument fails the 'naive' type-check, then recognize that the appropriate keys are present. Thats too complex and un-obvious.
+
+What we really want is something like a map:
+
+```
+; [.c, .b, .a ] & {.a 1; .b 2; .c 3;}
+# [3, 2, 1];
+```
