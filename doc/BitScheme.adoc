@@ -179,7 +179,6 @@ To reuse the results of previous captures, enclose the referencing capture in br
 
 ```
 
-
 == Example: RISC V
 
 To see how this works in practice, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
@@ -190,7 +189,9 @@ We start by defining captures for the various sub-fields used by RISC V instruct
 ```
 ; .OP <7 Bit> (
 # # .Register <0b0110011>;
-# # .Immediate <0b0000011, 0b0010011>;
+# # .Load 0b0000011;
+# # .Math 0b0010011;
+# # .Immediate <Load, Math>;
 # # .Upper <0b0110111, 0b0010111>;
 # # .Store <0b0100011>;
 # # .Branch <0b1100011>;
@@ -203,20 +204,21 @@ We start by defining captures for the various sub-fields used by RISC V instruct
 ; .RS2 (.rs2 <5 Bit>);
 ; .SOURCE (RS2, RS1, FUNCT3);
 ```
+
 === Schema
 These Identifiers allow us to define our top-level Schema very concisely:
 
 ```
 ; .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
-; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, OP.Immediate]>;
-; .UpperImmediate <[.imm31-12 <20 Bit>, RD, OP.Upper]>;
-; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, OP.Store]>;
-; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, OP.Branch]>;
-; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, OP.Jump]>;
-; .RiscV <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
+; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
+; .UpperImmediate <[.imm31-12 <20 Bit>, RD, .opcode OP.Upper]>;
+; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, .opcode OP.Store]>;
+; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, .opcode OP.Branch]>;
+; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, .opcode OP.Jump]>;
+; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
 
 ```
-=== Immediate Helpers
+==== Immediate Helpers
 
 We can also define helper properties to reconstitute immediates:
 ```
@@ -227,5 +229,46 @@ We can also define helper properties to reconstitute immediates:
 ; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };
 
 ```
+==== Constructors
+
+Constructors allow us to natively write assembly as an internal DSL.footnote:{https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]}. We use the `^` operator to bind a sequence Schema to a deferred expression. For example:
+```
+; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
+; .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math };
+```
+```
+; .r10 0b01010;
+; .r7 0b00111;
+; .v11 (7 0b0) 0b1011; # 11
+; .add_11_to_r10_into_r7 addi[v11, r10, r7]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
+```
 
 === Usage
+
+==== Generating Data Files
+
+Having created our Schema, we can simply evaluate it to expand all the variables:
+```
+; RISC-V
+```
+The resulting output contains no variables, and can be used as a schema format for traditional parsers and generators.
+
+==== Parsing
+
+We can also apply this Schema to a 32-bit value to parse it into its components:
+```
+; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
+# (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)
+```
+More sophisticated parsers can of course symbolicate the output for better readability.
+
+==== Generation
+
+Similarly, we can apply a parse dictionary to the Schema to create a literal:
+```
+; .a11r10r7-literal (RISC-V a11r10r7-parsed)
+# <0b00000001011; 0b01010; 0b000; 0b00111; 0b0010011;>
+; a11r10r7-literal.[]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
+```
