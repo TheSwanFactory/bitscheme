@@ -1,15 +1,14 @@
-= BitScheme Tutorial
+= BitScheme Tutorial/Specification
+_Draft 0.1, 2019-08-12_
 
-BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).
+BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote[Declaratively Rendered Executable Abstract Data Format Un-Language]
 
-BitScheme files use `bitscheme` as the file extension, and must begin with a hashbang containing that string,  e.g.:
+BitScheme files use `bitscheme` as the file extension, and must contain that string in an opening shebang.footnote[https://en.wikipedia.org/wiki/Shebang_(Unix)[`!#` aka hashbang]]
 ```
 #!/use/bin/env bitscheme
 ```
 
-While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
-
-BitScheme can also be run as a https://en.wikipedia.org/wiki/Read–eval–print_loop[REPL], with `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts). That is the format we will use for examples in this document.
+While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts), which is also the format we will use for code examples in this document.
 
 == Syntax
 
