@@ -174,7 +174,7 @@ The literal can then be deschematized using the `.[]` operator:
 To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
-; NetString 0x548656c6c6f20576f726c64 # Hello World
+; NetString 0x548656c6c6f # 5:Hello
 # [.n 5; .string 0x48656c6c6f;] # Hello
 
 ```
