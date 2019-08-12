@@ -1,9 +1,11 @@
 = BitScheme Tutorial/Specification
-_Draft 0.1, 2019-08-12_
+Draft 0.1, 2019-08-12
 
-BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote[Declaratively Rendered Executable Abstract Data Format Un-Language]
+Declaratively parse, manipulate and generate binary data
 
-BitScheme files use `bitscheme` as the file extension, and must contain that string in an opening shebang.footnote[https://en.wikipedia.org/wiki/Shebang_(Unix)[`!#` aka hashbang]]
+BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
+
+BitScheme files use `bitscheme` as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env bitscheme
 ```
