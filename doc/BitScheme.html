@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>BitScheme</title>
+<title>BitScheme Tutorial</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -438,7 +438,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article">
 <div id="header">
-<h1>BitScheme</h1>
+<h1>BitScheme Tutorial</h1>
 </div>
 <div id="content">
 <div id="preamble">
@@ -458,7 +458,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, <code>bitscheme</code> will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.</p>
 </div>
 <div class="paragraph">
-<p>BitScheme can also be run as a REPL, with <code>;</code> as the input prompt and <code>#</code> for the output. That is the format we will use for examples in this document.</p>
+<p>BitScheme can also be run as a REPL, with `; ` as the input prompt and `# ` for the output. That is the format we will use for examples in this document.</p>
 </div>
 </div>
 </div>
@@ -478,13 +478,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code>; 12345 # Decimal
+# 12345
 ; 0b101 # Binary
+# 0b101
+; 0xDEADBEEF # Hexadecimal
+# 0xDEADBEEF
 ; `Hello' # String (quoted, utf-8)
-; \5\Hello # NetString (sized in bytes)</code></pre>
+# `Hello'
+; \5\Hello # NetString (sized in bytes)
+# \5\Hello</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also use triple-backquotes for docstrings in asciidoc format. If you pass a '.adoc' file to bitscheme, it will pretend the backquotes, execute the code blocks, and warn if the evaluates input does not match the expected output.</p>
+<p>You can also use triple-backquotes for docstrings in <a href="https://asciidoctor.org">asciidoc</a> format. If you pass a '.adoc' file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.</p>
 </div>
 <div class="paragraph">
 <p>Comment strings (using '#') are also considered a type of Literal:</p>
@@ -513,60 +519,90 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect3">
 <h4 id="_symbols">Symbols</h4>
 <div class="paragraph">
-<p>BitScheme also supports Symbolic Identifiers, which can be set
-as a Name (with a dot prefix) or evaluated as a Value (without):</p>
+<p>BitScheme also supports Symbolic Identifiers, which use prefix sigils for different usages:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .the-answer 42; # Name (setter)
+<pre class="highlight"><code>; .the-answer 42; # .Name (setter)
 ; the-answer # Value (getter)
-# 42</code></pre>
+# 42
+; ther-answer
+# $ther-answer # $Error
+; @the-answer 7; # @Reference (reset)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Symbols with only non-alphanumeric characters (e.g., '+') are called Operators.</p>
+<p>Symbols with only non-alphanumeric characters (e.g., '+') are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+- <code>?</code> if-then
+- <code>:</code> if-else
+- <code>&amp;</code> map
+- <code>|</code> reduce</p>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_grouping">Grouping</h3>
+<div class="sect3">
+<h4 id="_terminals">Terminals</h4>
 <div class="paragraph">
-<p>Grouping is done using Terminals (comma, semicolon, and newline) and Delimiters:</p>
+<p>Elements are separated using Terminals:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; [1, 2, 3] # Array
+<pre class="highlight"><code>; `Terminal Expression' # newline
+# `Terminal Expression'
+; `Expression1',`Expression2' # comma
+# `Expression1',`Expression2'
+; `Statement'; # semicolon</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_delimiters">Delimiters</h4>
+<div class="paragraph">
+<p>Elements are aggregated using pairs of Delimiters:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; [1, 2, 3] # [] Boxed
 # [1, 2, 3]
-; (0b1 0b0), # Expression
+; (0b1 0b0) # () Unboxed
 # 0b10
-; .Proc {0b1 0b0}; # Lazy
-; .nil ();
-; .all &lt;&gt;;
-; .Bit &lt;nil, all&gt;; # Type</code></pre>
+; .Closure {0b1 0b0}; # {} Deferred
+; Closure()
+# 0b10
+; .Bit &lt;0b0, 0b1&gt;; # &lt;&gt; Schema (i.e. type; see below)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Strictly speaking, only the Deferred Delimeters <code>{}</code> are part of the syntax, in the sense of affecting how the DREADFUL is parsed. The others are actually constructors invoking objects defined in the standard library.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_types">Types</h4>
+<h4 id="_properties">Properties</h4>
 <div class="paragraph">
-<p>Types are just grouped expressions that are interpreted as constraints.  Some common type expressions are:</p>
+<p>Names can be used as properties to extract values from Groupings:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .Enum &lt;1,2,3&gt;; # Enumerated list of valid values
-; .BitField &lt;3 Bit&gt;; # Fixed-width sequences
-; .BitStream &lt;[Bit]&gt;; # Arbitrary-length Arrays of a specific type</code></pre>
+<pre class="highlight"><code>; [.a 1; .b 2;].a
+# 1</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_type_errors">Type Errors</h4>
+<h4 id="_operator_syntax">Operator Syntax</h4>
 <div class="paragraph">
-<p>If you attempt to assign a value that doesn&#8217;t satisfy the type constraint, it will generate an Error (a special kind of Identifier, prefixed by <code>$</code>):</p>
+<p>Operators are actually defined as properties. However, since Operators must always operate <em>on</em> something, the preceding dot is optional:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .BelowThree &lt;1,2&gt; 12;
-# $TypeError&lt;1,2&gt;(.BelowThree, 12)</code></pre>
+<pre class="highlight"><code>; .false () # _nil_, the empty expression
+; .true &lt;&gt; # _all_, the inclusive schema
+; true .? `Yes' .: `No'
+# `Yes'
+; false ? `Yes' : `No'
+# `No'</code></pre>
 </div>
 </div>
 </div>
@@ -574,15 +610,144 @@ as a Name (with a dot prefix) or evaluated as a Value (without):</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_examples">Examples</h2>
+<h2 id="_schemas">Schemas</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Schemas, a novel feature of <code>bitscheme</code>, can be thought of as a cross between type signatures and regular expressions.  Syntactically they are ordinary Groupings, so they are easy to compose and refactor.  Each element of a Schema is called a <em>capture</em>.</p>
+</div>
+<div class="sect2">
+<h3 id="_simple_captures">Simple Captures</h3>
+<div class="paragraph">
+<p>The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .enum123 &lt;1,2,3&gt;; # Enumerated list of valid values
+; .Byte &lt;8 Bit&gt;; # Fixed-length sequences
+; .BitStream &lt;[Bit]&gt;; # Variable-length Sequence of a specific type</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_type_constraints">Type Constraints</h3>
+<div class="paragraph">
+<p>The Schema constrains which values can be bound to a Symbol, and can be retrieved via the <code>&lt;&gt;</code> property.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; @enum123 2;
+; enum123
+# 2
+; enum123.&lt;&gt;
+# &lt;1,2,3&gt;
+; @enum123 4
+# $@enum123&lt;1,2,3&gt; 4</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deconstuctors">Deconstuctors</h3>
+<div class="paragraph">
+<p>Schemas can also act directly to extract or bind values from compound sequences:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; &lt;.x, .z&gt; [.x 1; .y 2; .z 3;] # Selector
+# [1, 3]
+; .BitSplitter3 &lt;[.head &lt;3 Bit&gt;; .tail &lt;[Bit]&gt;;]&gt;;
+; BitSplitter3 0b10101100
+# [.head 0b101; .tail 0b01100;]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_constructors">Constructors</h3>
+<div class="paragraph">
+<p>Conversely, sequence Schemas can also be used to unparse symbols into a literal Schema:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .unparsed BitSplitter3 [.head 0b000; .tail 0b111;]
+# .unparsed &lt;[0b000; 0b111;]&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The literal can then be deschematized using the <code>.[]</code> operator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; unparsed.[]
+# 0b000111</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deferred_captures">Deferred Captures</h3>
+<div class="paragraph">
+<p>To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .NetString &lt;[.n &lt;4 Bit&gt;; .string {&lt;n Byte&gt;};]&gt;;
+; NetString 0x548656c6c6f20576f726c64 # Hello World
+# [.n 5; .string 0x48656c6c6f;] # Hello</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_example_risc_v">Example: RISC V</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To see how this works in practice, we will construct Schema for the six <a href="https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions">32-bit RISC-V Instruction Formats</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="_core_schemas">Core Schemas</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .FUNCT3 (.funct3 &lt;3 Bit&gt;;);
+; .FUNCT7 (.funct7 &lt;7 Bit&gt;;);
+; .OPCODE (.opcode &lt;7 Bit&gt;;);
+; .RD (.rd &lt;6 Bit&gt;);
+; .RS1 (.rs1 &lt;5 Bit&gt;);
+; .RS2 (.rs2 &lt;5 Bit&gt;);
+; .SOURCE (RS2, RS1, FUNCT3);
 
+; .Register &lt;[FUNCT7, SOURCE, RD, OPCODE]&gt;;
+; .Immediate &lt;[.imm11-0 &lt;12 Bit&gt;, RS1, FUNCT3, RD, OPCODE]&gt;;
+; .UpperImmediate &lt;[.imm31-12 &lt;20 Bit&gt;, RD, OPCODE]&gt;;
+; .Store &lt;[.imm11-5 &lt;7 Bit&gt;, SOURCE, .imm4-0 &lt;5 Bit&gt;, OPCODE]&gt;;
+; .Branch &lt;[.b12 &lt;Bit&gt;,.imm10-5 &lt;6 Bit&gt;, SOURCE, .imm4-1 &lt;4 Bit&gt;,.b11 &lt;Bit&gt;, OPCODE]&gt;;
+; .Jump &lt;[.b20 &lt;Bit&gt;,.imm10-1 &lt;10 Bit&gt;, .b11 &lt;Bit&gt;, .imm19-12 &lt;8 Bit&gt;, RD, OPCODE]&gt;;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_helper_methods">Helper Methods</h3>
+<div class="paragraph">
+<p>We can also define helper properties to reconstitute immediates:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; @Immediate.immediate { imm11-0 };
+; @UpperImmediate.immediate { imm31-12 (12 0b0)};
+; @Store.immediate { imm11-5 imm4-0 };
+; @Branch.immediate { b12 b11 imm10-5 imm4-1 0b0};
+; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_usage">Usage</h3>
+
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-08-09 06:14:56 -0700
+Last updated 2019-08-11 17:25:44 -0700
 </div>
 </div>
 </body>

@@ -121,7 +121,7 @@ Operators are actually defined as properties. However, since Operators must alwa
 
 Schemas, a novel feature of `bitscheme`, can be thought of as a cross between type signatures and regular expressions.  Syntactically they are ordinary Groupings, so they are easy to compose and refactor.  Each element of a Schema is called a _capture_.
 
-==== Simple Captures
+=== Simple Captures
 
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
@@ -130,7 +130,7 @@ The three simple Schemas resemble C types, though they actually define an interf
 ; .BitStream <[Bit]>; # Variable-length Sequence of a specific type
 ```
 
-==== Type Constraints
+=== Type Constraints
 
 The Schema constrains which values can be bound to a Symbol, and can be retrieved via the `<>` property.
 ```
@@ -143,7 +143,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $@enum123<1,2,3> 4
 ```
 
-==== Deconstuctors
+=== Deconstuctors
 
 Schemas can also act directly to extract or bind values from compound sequences:
 
@@ -156,7 +156,7 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 ```
 
-==== Constructors
+=== Constructors
 
 Conversely, sequence Schemas can also be used to unparse symbols into a literal Schema:
 ```
@@ -170,7 +170,7 @@ The literal can then be deschematized using the `.[]` operator:
 # 0b000111
 ```
 
-==== Deferred Captures
+=== Deferred Captures
 To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
