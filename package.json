@@ -4,7 +4,7 @@
   "description": "Bitstream Schematizer: declaratively parse, manipulate and generate binary data",
   "main": "index.js",
   "scripts": {
-    "doc": "asciidoctor BitScheme.adoc && open BitScheme.html",
+    "doc": "cd doc && asciidoctor BitScheme.adoc && open BitScheme.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
