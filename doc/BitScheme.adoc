@@ -1,15 +1,16 @@
-= BitScheme Tutorial
+= BitScheme Tutorial/Specification
+Draft 0.1, 2019-08-12
 
-BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs). It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL (Diversely Rendered Executable Abstract Data Format UnLanguage).
+Declaratively parse, manipulate and generate binary data
 
-BitScheme files use `bitscheme` as the file extension, and must begin with a hashbang containing that string,  e.g.:
+BitScheme is a lightweight data format for describing arbitrary sequences of binary data ("bitstreams", like those used for programming FPGAs).footnote:[https://en.wikipedia.org/wiki/Field-programmable_gate_array[Field-Programmable Gate Array]] It also doubles as a scripting language for manipulating those bitstreams -- what is sometimes called a DREADFUL.footnote:[Declaratively Rendered Executable Abstract Data Format Un-Language]
+
+BitScheme files use `bitscheme` as the file extension, and must contain that string in an opening `!#` shebang.footnote:[https://en.wikipedia.org/wiki/Shebang_(Unix)[shebang], aka hashbang]
 ```
 #!/use/bin/env bitscheme
 ```
 
-While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
-
-BitScheme can also be run as a https://en.wikipedia.org/wiki/Read–eval–print_loop[REPL], with `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts). That is the format we will use for examples in this document.
+While you can write parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line to parse or generate bitstreas. BitScheme can also be run as a REPL.footnote[https://en.wikipedia.org/wiki/Read–eval–print_loop[Read–Eval–Print Loop]]. The REPL uses ``; `` as the input prompt and ``# `` for the output (plus ``# # `` for multi-line prompts), which is also the format we will use for code examples in this document.
 
 == Syntax
 
@@ -31,7 +32,7 @@ The simplest Identifiers are Literals, e.g.:
 ; \5\Hello # NetString (sized in bytes)
 # \5\Hello
 ```
-You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a '.adoc' file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
+You can also use triple-backquotes for docstrings in https://asciidoctor.org[asciidoc] format. If you pass a `.adoc` file to bitscheme, it will prepend the backquotes, execute the code blocks, and warn if the evaluated input does not match the expected output.
 
 Comment strings (using '#') are also considered a type of Literal:
 ```
@@ -63,7 +64,8 @@ BitScheme also supports Symbolic Identifiers, which use prefix sigils for differ
 
 ```
 
-Symbols with only non-alphanumeric characters (e.g., '+') are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+Symbols with only non-alphanumeric characters (e.g., ``+``) are called Operators rather than Identifiers. There are four universal binary Operators in the standard library, which can be used with any Value:
+
 - `?` if-then
 - `:` if-else
 - `&` map
@@ -158,15 +160,15 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 === Constructors
 
-Conversely, sequence Schemas can also be used to unparse symbols into a literal Schema:
+We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
 ```
-; .unparsed BitSplitter3 [.head 0b000; .tail 0b111;]
-# .unparsed <[0b000; 0b111;]>
+; .BS3_sequence (BitSplitter3 & [.head 0b000; .tail 0b111;])
+# [0b000, 0b111]
 
 ```
-The literal can then be deschematized using the `.[]` operator:
+The sequence can then be evaluated by folding it into an expression:
 ```
-; unparsed.[]
+; BS3_sequence | ()
 # 0b000111
 ```
 
@@ -175,7 +177,7 @@ To reuse the results of previous captures, enclose the referencing capture in br
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
 ; NetString 0x548656c6c6f # 5:Hello
-# [.n 5; .string 0x48656c6c6f;] # Hello
+# [.n 0x5; .string 0x48656c6c6f;] # Hello
 
 ```
 
@@ -265,10 +267,10 @@ More sophisticated parsers can of course symbolicate the output for better reada
 
 ==== Generation
 
-Similarly, we can apply a parse dictionary to the Schema to create a literal:
+Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
 ```
-; .a11r10r7-literal (RISC-V a11r10r7-parsed)
-# <0b00000001011; 0b01010; 0b000; 0b00111; 0b0010011;>
-; a11r10r7-literal.[]
+; .a11r10r7-sequence (RISC-V & a11r10r7-parsed)
+# [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
+; a11r10r7-sequence | ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
