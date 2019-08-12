@@ -13,12 +13,7 @@
 | RV32I
 
 | 1101111
-| JAL
-| Jump
-| RV32I
-
-| 1100111
-| JALR
+| JAL*
 | Jump
 | RV32I
 
@@ -27,7 +22,7 @@
 | Branch
 | RV32I
 
-| 1100011
+| 0000011
 | L*
 | Immediate (Load)
 | RV32I
@@ -47,18 +42,19 @@
 | Register
 | RV32I
 
+| 0001111
+| FENCE
+| Immediate (Fence)
+| RV32I
 
+| 1110011
+| E*
+| Immediate (Debug)
+| RV32I
 
+| 1110011
+| CSR*
+| Immediate (Status)
+| RV32I
 
-
-0x10111 UI
-1101111 JAL
-1100111 JALR
-1100011 B-Format
-0000011 I-Format Load
-0100011 S-Format
-0010011 I-Format Math
-0110011 R-Format (Reg-Reg)
-0001111 FENCE
-1110011 I-Format Load CSR 
-
+|===
