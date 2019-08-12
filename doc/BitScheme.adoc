@@ -157,15 +157,15 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 === Constructors
 
-Conversely, sequence Schemas can also be used to unparse symbols into a literal Schema:
+We can also reverse the flow, by mapping capture keys to a dictionary to generate a sequence of values:
 ```
-; .unparsed BitSplitter3 [.head 0b000; .tail 0b111;]
-# .unparsed <[0b000; 0b111;]>
+; .BS3_sequence (BitSplitter3 & [.head 0b000; .tail 0b111;])
+# [0b000, 0b111]
 
 ```
-The literal can then be deschematized using the `.[]` operator:
+The sequence can then be evaluated by folding it into an expression:
 ```
-; unparsed.[]
+; BS3_sequence | ()
 # 0b000111
 ```
 
@@ -174,7 +174,7 @@ To reuse the results of previous captures, enclose the referencing capture in br
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
 ; NetString 0x548656c6c6f # 5:Hello
-# [.n 5; .string 0x48656c6c6f;] # Hello
+# [.n 0x5; .string 0x48656c6c6f;] # Hello
 
 ```
 
@@ -264,11 +264,11 @@ More sophisticated parsers can of course symbolicate the output for better reada
 
 ==== Generation
 
-Similarly, we can apply a parse dictionary to the Schema to create a literal:
+Similarly, we can map the Schema into a dictionary to generate a sequence, and thus a value:
 ```
-; .a11r10r7-literal (RISC-V a11r10r7-parsed)
-# <0b00000001011; 0b01010; 0b000; 0b00111; 0b0010011;>
-; a11r10r7-literal.[]
+; .a11r10r7-sequence (RISC-V & a11r10r7-parsed)
+# [0b00000001011, 0b01010, 0b000, 0b00111, 0b0010011]
+; a11r10r7-sequence | ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
 
