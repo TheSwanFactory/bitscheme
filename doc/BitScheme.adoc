@@ -9,7 +9,7 @@ BitScheme files use `bitscheme` as the file extension, and must begin with a has
 
 While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
 
-BitScheme can also be run as a REPL, with `; ` as the input prompt and `# ` for the output. That is the format we will use for examples in this document.
+BitScheme can also be run as a https://en.wikipedia.org/wiki/Read–eval–print_loop[REPL], with `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts). That is the format we will use for examples in this document.
 
 == Syntax
 
@@ -184,26 +184,39 @@ To reuse the results of previous captures, enclose the referencing capture in br
 
 To see how this works in practice, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
 
-=== Core Schemas
+=== Fields
+We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
 
 ```
+; .OP <7 Bit> (
+# # .Register <0b0110011>;
+# # .Immediate <0b0000011, 0b0010011>;
+# # .Upper <0b0110111, 0b0010111>;
+# # .Store <0b0100011>;
+# # .Branch <0b1100011>;
+# # .Jump <0b1101111>;
+# # );
 ; .FUNCT3 (.funct3 <3 Bit>;);
 ; .FUNCT7 (.funct7 <7 Bit>;);
-; .OPCODE (.opcode <7 Bit>;);
 ; .RD (.rd <6 Bit>);
 ; .RS1 (.rs1 <5 Bit>);
 ; .RS2 (.rs2 <5 Bit>);
 ; .SOURCE (RS2, RS1, FUNCT3);
-
-; .Register <[FUNCT7, SOURCE, RD, OPCODE]>;
-; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, OPCODE]>;
-; .UpperImmediate <[.imm31-12 <20 Bit>, RD, OPCODE]>;
-; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, OPCODE]>;
-; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, OPCODE]>;
-; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, OPCODE]>;
+```
+=== Schema
+These Identifiers allow us to define our top-level Schema very concisely:
 
 ```
-=== Helper Methods
+; .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
+; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, OP.Immediate]>;
+; .UpperImmediate <[.imm31-12 <20 Bit>, RD, OP.Upper]>;
+; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, OP.Store]>;
+; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, OP.Branch]>;
+; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, OP.Jump]>;
+; .RiscV <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
+
+```
+=== Immediate Helpers
 
 We can also define helper properties to reconstitute immediates:
 ```
