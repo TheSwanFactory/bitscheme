@@ -9,7 +9,7 @@ BitScheme files use `bitscheme` as the file extension, and must begin with a has
 
 While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, `bitscheme` will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.
 
-BitScheme can also be run as a REPL, with `; ` as the input prompt and `# ` for the output. That is the format we will use for examples in this document.
+BitScheme can also be run as a https://en.wikipedia.org/wiki/Read–eval–print_loop[REPL], with `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts). That is the format we will use for examples in this document.
 
 == Syntax
 
@@ -121,7 +121,7 @@ Operators are actually defined as properties. However, since Operators must alwa
 
 Schemas, a novel feature of `bitscheme`, can be thought of as a cross between type signatures and regular expressions.  Syntactically they are ordinary Groupings, so they are easy to compose and refactor.  Each element of a Schema is called a _capture_.
 
-==== Simple Captures
+=== Simple Captures
 
 The three simple Schemas resemble C types, though they actually define an interface rather than require a specific representation:
 ```
@@ -130,7 +130,7 @@ The three simple Schemas resemble C types, though they actually define an interf
 ; .BitStream <[Bit]>; # Variable-length Sequence of a specific type
 ```
 
-==== Type Constraints
+=== Type Constraints
 
 The Schema constrains which values can be bound to a Symbol, and can be retrieved via the `<>` property.
 ```
@@ -143,7 +143,7 @@ The Schema constrains which values can be bound to a Symbol, and can be retrieve
 # $@enum123<1,2,3> 4
 ```
 
-==== Deconstuctors
+=== Deconstuctors
 
 Schemas can also act directly to extract or bind values from compound sequences:
 
@@ -156,7 +156,7 @@ Schemas can also act directly to extract or bind values from compound sequences:
 
 ```
 
-==== Constructors
+=== Constructors
 
 Conversely, sequence Schemas can also be used to unparse symbols into a literal Schema:
 ```
@@ -170,7 +170,7 @@ The literal can then be deschematized using the `.[]` operator:
 # 0b000111
 ```
 
-==== Deferred Captures
+=== Deferred Captures
 To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
@@ -179,31 +179,46 @@ To reuse the results of previous captures, enclose the referencing capture in br
 
 ```
 
-
 == Example: RISC V
 
 To see how this works in practice, we will construct Schema for the six https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions[32-bit RISC-V Instruction Formats].
 
-=== Core Schemas
+=== Fields
+We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):
 
 ```
+; .OP <7 Bit> (
+# # .Register <0b0110011>;
+# # .Load 0b0000011;
+# # .Math 0b0010011;
+# # .Immediate <Load, Math>;
+# # .Upper <0b0110111, 0b0010111>;
+# # .Store <0b0100011>;
+# # .Branch <0b1100011>;
+# # .Jump <0b1101111>;
+# # );
 ; .FUNCT3 (.funct3 <3 Bit>;);
 ; .FUNCT7 (.funct7 <7 Bit>;);
-; .OPCODE (.opcode <7 Bit>;);
 ; .RD (.rd <6 Bit>);
 ; .RS1 (.rs1 <5 Bit>);
 ; .RS2 (.rs2 <5 Bit>);
 ; .SOURCE (RS2, RS1, FUNCT3);
+```
 
-; .Register <[FUNCT7, SOURCE, RD, OPCODE]>;
-; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, OPCODE]>;
-; .UpperImmediate <[.imm31-12 <20 Bit>, RD, OPCODE]>;
-; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, OPCODE]>;
-; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, OPCODE]>;
-; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, OPCODE]>;
+=== Schema
+These Identifiers allow us to define our top-level Schema very concisely:
 
 ```
-=== Helper Methods
+; .Register <[FUNCT7, SOURCE, RD, OP.Register]>;
+; .Immediate <[.imm11-0 <12 Bit>, RS1, FUNCT3, RD, .opcode OP.Immediate]>;
+; .UpperImmediate <[.imm31-12 <20 Bit>, RD, .opcode OP.Upper]>;
+; .Store <[.imm11-5 <7 Bit>, SOURCE, .imm4-0 <5 Bit>, .opcode OP.Store]>;
+; .Branch <[.b12 <Bit>,.imm10-5 <6 Bit>, SOURCE, .imm4-1 <4 Bit>,.b11 <Bit>, .opcode OP.Branch]>;
+; .Jump <[.b20 <Bit>,.imm10-1 <10 Bit>, .b11 <Bit>, .imm19-12 <8 Bit>, RD, .opcode OP.Jump]>;
+; .RISC-V <Register, Immediate, UpperImmediate, Store, Branch, Jump>;
+
+```
+==== Immediate Helpers
 
 We can also define helper properties to reconstitute immediates:
 ```
@@ -214,5 +229,46 @@ We can also define helper properties to reconstitute immediates:
 ; @Jump.immediate { b20 imm19-12 b11 imm10-1 0b0 };
 
 ```
+==== Constructors
+
+Constructors allow us to natively write assembly as an internal DSL.footnote:[https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]]. We use the `^` operator to bind a Schema to a deferred expression. For example:
+```
+; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
+; .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math };
+```
+```
+; .r10 0b01010;
+; .r7 0b00111;
+; .v11 (7 0b0) 0b1011; # 11
+; .add_11_to_r10_into_r7 addi[v11, r10, r7]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
+```
 
 === Usage
+
+==== Generating Data Files
+
+Having created our Schema, we can simply evaluate it to expand all the variables:
+```
+; RISC-V
+```
+The resulting output contains no variables, and can be used as a schema format for traditional parsers and generators.
+
+==== Parsing
+
+We can also apply this Schema to a 32-bit value to parse it into its components:
+```
+; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
+# (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)
+```
+More sophisticated parsers can of course symbolicate the output for better readability.
+
+==== Generation
+
+Similarly, we can apply a parse dictionary to the Schema to create a literal:
+```
+; .a11r10r7-literal (RISC-V a11r10r7-parsed)
+# <0b00000001011; 0b01010; 0b000; 0b00111; 0b0010011;>
+; a11r10r7-literal.[]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
+```
