@@ -458,7 +458,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>While you can write your parsers in other languages to read the BitScheme format, BitScheme files can also be executed directly from the command line. With no arguments, <code>bitscheme</code> will write a bitstream to stdout. If passed an input bitstream, they will pattern match against it to generate symbolic code that can recreate that bitstream.</p>
 </div>
 <div class="paragraph">
-<p>BitScheme can also be run as a REPL, with `; ` as the input prompt and `# ` for the output. That is the format we will use for examples in this document.</p>
+<p>BitScheme can also be run as a <a href="https://en.wikipedia.org/wiki/Read–eval–print_loop">REPL</a>, with `; ` as the input prompt and `# ` for the output (plus `# # ` for multi-line prompts). That is the format we will use for examples in this document.</p>
 </div>
 </div>
 </div>
@@ -703,28 +703,49 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>To see how this works in practice, we will construct Schema for the six <a href="https://en.wikipedia.org/wiki/RISC-V#ISA_base_and_extensions">32-bit RISC-V Instruction Formats</a>.</p>
 </div>
 <div class="sect2">
-<h3 id="_core_schemas">Core Schemas</h3>
+<h3 id="_fields">Fields</h3>
+<div class="paragraph">
+<p>We start by defining captures for the various sub-fields used by RISC V instructions (as used by RV 32I):</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>; .FUNCT3 (.funct3 &lt;3 Bit&gt;;);
+<pre class="highlight"><code>; .OP &lt;7 Bit&gt; (
+# # .Register &lt;0b0110011&gt;;
+# # .Load 0b0000011;
+# # .Math 0b0010011;
+# # .Immediate &lt;Load, Math&gt;;
+# # .Upper &lt;0b0110111, 0b0010111&gt;;
+# # .Store &lt;0b0100011&gt;;
+# # .Branch &lt;0b1100011&gt;;
+# # .Jump &lt;0b1101111&gt;;
+# # );
+; .FUNCT3 (.funct3 &lt;3 Bit&gt;;);
 ; .FUNCT7 (.funct7 &lt;7 Bit&gt;;);
-; .OPCODE (.opcode &lt;7 Bit&gt;;);
 ; .RD (.rd &lt;6 Bit&gt;);
 ; .RS1 (.rs1 &lt;5 Bit&gt;);
 ; .RS2 (.rs2 &lt;5 Bit&gt;);
-; .SOURCE (RS2, RS1, FUNCT3);
-
-; .Register &lt;[FUNCT7, SOURCE, RD, OPCODE]&gt;;
-; .Immediate &lt;[.imm11-0 &lt;12 Bit&gt;, RS1, FUNCT3, RD, OPCODE]&gt;;
-; .UpperImmediate &lt;[.imm31-12 &lt;20 Bit&gt;, RD, OPCODE]&gt;;
-; .Store &lt;[.imm11-5 &lt;7 Bit&gt;, SOURCE, .imm4-0 &lt;5 Bit&gt;, OPCODE]&gt;;
-; .Branch &lt;[.b12 &lt;Bit&gt;,.imm10-5 &lt;6 Bit&gt;, SOURCE, .imm4-1 &lt;4 Bit&gt;,.b11 &lt;Bit&gt;, OPCODE]&gt;;
-; .Jump &lt;[.b20 &lt;Bit&gt;,.imm10-1 &lt;10 Bit&gt;, .b11 &lt;Bit&gt;, .imm19-12 &lt;8 Bit&gt;, RD, OPCODE]&gt;;</code></pre>
+; .SOURCE (RS2, RS1, FUNCT3);</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_helper_methods">Helper Methods</h3>
+<h3 id="_schema">Schema</h3>
+<div class="paragraph">
+<p>These Identifiers allow us to define our top-level Schema very concisely:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .Register &lt;[FUNCT7, SOURCE, RD, OP.Register]&gt;;
+; .Immediate &lt;[.imm11-0 &lt;12 Bit&gt;, RS1, FUNCT3, RD, .opcode OP.Immediate]&gt;;
+; .UpperImmediate &lt;[.imm31-12 &lt;20 Bit&gt;, RD, .opcode OP.Upper]&gt;;
+; .Store &lt;[.imm11-5 &lt;7 Bit&gt;, SOURCE, .imm4-0 &lt;5 Bit&gt;, .opcode OP.Store]&gt;;
+; .Branch &lt;[.b12 &lt;Bit&gt;,.imm10-5 &lt;6 Bit&gt;, SOURCE, .imm4-1 &lt;4 Bit&gt;,.b11 &lt;Bit&gt;, .opcode OP.Branch]&gt;;
+; .Jump &lt;[.b20 &lt;Bit&gt;,.imm10-1 &lt;10 Bit&gt;, .b11 &lt;Bit&gt;, .imm19-12 &lt;8 Bit&gt;, RD, .opcode OP.Jump]&gt;;
+; .RISC-V &lt;Register, Immediate, UpperImmediate, Store, Branch, Jump&gt;;</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_immediate_helpers">Immediate Helpers</h4>
 <div class="paragraph">
 <p>We can also define helper properties to reconstitute immediates:</p>
 </div>
@@ -738,16 +759,86 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_constructors_2">Constructors</h4>
+<div class="paragraph">
+<p>Constructors allow us to natively write assembly as an internal DSL.<sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>. We use the <code>^</code> operator to bind a Schema to a deferred expression. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
+; .addi &lt;[.value, .source, .dest]&gt; ^ {value source func.add dest OP.Math };</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .r10 0b01010;
+; .r7 0b00111;
+; .v11 (7 0b0) 0b1011; # 11
+; .add_11_to_r10_into_r7 addi[v11, r10, r7]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity</code></pre>
+</div>
+</div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_usage">Usage</h3>
-
+<div class="sect3">
+<h4 id="_generating_data_files">Generating Data Files</h4>
+<div class="paragraph">
+<p>Having created our Schema, we can simply evaluate it to expand all the variables:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; RISC-V</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>The resulting output contains no variables, and can be used as a schema format for traditional parsers and generators.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_parsing">Parsing</h4>
+<div class="paragraph">
+<p>We can also apply this Schema to a 32-bit value to parse it into its components:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .a11r10r7-parsed (RISC-V add_11_to_r10_into_r7)
+# (.imm11 0b00000001011; .rs1 0b01010; .func3 0b000; .rd 0b00111; .opcode 0b0010011;)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>More sophisticated parsers can of course symbolicate the output for better readability.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_generation">Generation</h4>
+<div class="paragraph">
+<p>Similarly, we can apply a parse dictionary to the Schema to create a literal:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>; .a11r10r7-literal (RISC-V a11r10r7-parsed)
+# &lt;0b00000001011; 0b01010; 0b000; 0b00111; 0b0010011;&gt;
+; a11r10r7-literal.[]
+# 0b00000001011 01010 000 00111 0010011 # spaces added for clarity</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes">
+<hr>
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. <a href="https://en.wikipedia.org/wiki/Domain-specific_language">Domain Specific Language</a>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-08-11 17:25:44 -0700
+Last updated 2019-08-12 05:26:11 -0700
 </div>
 </div>
 </body>

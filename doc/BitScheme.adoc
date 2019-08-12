@@ -231,7 +231,7 @@ We can also define helper properties to reconstitute immediates:
 ```
 ==== Constructors
 
-Constructors allow us to natively write assembly as an internal DSL.footnote:{https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]}. We use the `^` operator to bind a sequence Schema to a deferred expression. For example:
+Constructors allow us to natively write assembly as an internal DSL.footnote:[https://en.wikipedia.org/wiki/Domain-specific_language[Domain Specific Language]]. We use the `^` operator to bind a Schema to a deferred expression. For example:
 ```
 ; .func (.add 0b000; .slt 010; .xor 0b100; .or 0b110; .and 0b111;);
 ; .addi <[.value, .source, .dest]> ^ {value source func.add dest OP.Math };
