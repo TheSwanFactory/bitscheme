@@ -274,3 +274,13 @@ Similarly, we can map the Schema into a dictionary to generate a sequence, and t
 ; a11r10r7-sequence | ()
 # 0b00000001011 01010 000 00111 0010011 # spaces added for clarity
 ```
+
+== Next Steps
+
+=== CREADFUL
+
+Having defined our DREADFUL declarative format, the next step is to make it computable (CREADFUL, if you will). This mostly involves completing https://github.com/TheSwanFactory/hclang[Homoiconic C] and adding the ability to read bitstreams rather than just bytes.  This should only take a week or two if I were working on it full-time, but since it has to complete with my job, family, and other projects I will be lucky to have something by the end of 2019.
+
+=== GREADFUL
+
+As a bonus, since BitSchme is a well-defined tree-structured data format, it should be possible to generate a Graphical Rendering, i.e. GREADFUL.  Just don't ask me for a https://en.wikipedia.org/wiki/Grateful_Dead[GREADFUL DATE]...
