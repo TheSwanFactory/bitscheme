@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/TheSwanFactory/bitscheme/issues"
   },
-  "homepage": "https://github.com/TheSwanFactory/bitscheme#readme"
+  "homepage": "https://github.com/TheSwanFactory/bitscheme#readme",
+  "dependencies": {
+    "hclang": "^0.1.0"
+  }
 }
