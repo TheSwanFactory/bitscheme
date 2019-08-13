@@ -20,3 +20,26 @@ $ npm run doc
 ```
 
 For more information, please join us on the https://groups.google.com/forum/?nomobile=true#!forum/uncomplex[uncomplex] mailing list.
+
+== Motivation
+
+The general problem BitScheme solves is “how to interpret arbitrary streams of binary data.”
+
+There’s many different kinds of binary data. In fact, if you think about, everything a computer does is ultimately binary data. For example:
+- CPU Instruction Sets
+- Data Protocols (Ethernet, HDMI, TCP/IP)
+- File Formats (Filesystems, Game files, Databases)
+
+One interesting case is the “bitstreams” used to program FPGAs.  Field-Programmable Gate Arrays are basically a layers of logic gates, switches and memory with configurable connections between them. You “program” the FPGA by sending it a “bitstream” describing the configuration between the various layers and elements.  This makes it (relatively) easy and cheap to create your own custom silicon chip with effectively any possible digital functionality — even your own processor, optimized to the exact workload you need to run.
+
+The challenge for hardware hackers is that the FPGA formats are under documented, and often tied to expensive proprietary tools.  Therefore there is a cottage industry of open source tools for reverse-engineering and manipulating binary data, so poor hackers can play with increasingly cheap hardware without buying fancy tools.  FPGA hackers aren’t a huge market; but they have an important hard problems with poor tools.  If bitscheme can solve their problems, there’s massive adjacent markets (chip design, security fuzzing, etc.) that it could potentially go after
+
+The reason is that traditional computer science has a very rigid way of thinking about parsing.  Computer languages each require their own incredibly complicated, special-purpose parsers.  To create a general-purpose parser for binary data, people have traditionally had to make a lot of simplifying assumptions. The easiest assumption to make is that everything has fixed width fields.  That works well for many simple data formats and protocols, but is woefully inadequate for the sort of complex data present in FPGA bitstreams.
+
+One example of this is a net string.   "Read a byte to get a number N, then read N bytes."  Amazingly, existing  "state machine" parsers can’t handle that, because all the “lexing" (breaking a string into tokens) happens before anything is evaluated. Such parsers don’t have a general way to describe things like that.
+
+To be sure, it is always possible to create your own  custom parser to address kinds of problems.  But the “holy grail’ of parsers is to use a “Declarative” format (i.e., “data”), which is simple, well-structured, and easy to visualize and pass between different independent tools.  Once you start writing parsers by hand, you have “procedural” information (*’code”) which is highly dependent on complex parsers and interpretation, which locks you into a narrow set of tools, creating significant compabitility challenges.
+
+This is where we come in.  Homoiconic C is a very simple but general data format for describing general-purpose computation.  It looks like data, but runs like code.
+
+BitScheme is nominally a powerful data format for declaratively expressing complicated parsing requirements.  Even just that might be very interesting to the community of hackers.  But of course, it is also an even more powerful programming language for actually doing the parsing and unparsing -- and everything else.  Binary parsing is  "customer zero", our first step towards revolutionizing how the world things about computation.
