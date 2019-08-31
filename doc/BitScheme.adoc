@@ -176,7 +176,7 @@ The sequence can then be evaluated by folding it into an expression:
 To reuse the results of previous captures, enclose the referencing capture in brackets to defer evaluation:
 ```
 ; .NetString <[.n <4 Bit>; .string {<n Byte>};]>;
-; NetString 0x548656c6c6f # 5:Hello
+; NetString 0x548656c6c6f666666666 # 5:Hello + sixes
 # [.n 0x5; .string 0x48656c6c6f;] # Hello
 
 ```
