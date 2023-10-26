@@ -25,6 +25,6 @@
   },
   "homepage": "https://github.com/TheSwanFactory/bitscheme#readme",
   "dependencies": {
-    "hclang": "^0.1.0"
+    "hclang": "^0.5.11"
   }
 }
